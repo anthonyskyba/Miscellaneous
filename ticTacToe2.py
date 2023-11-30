@@ -1,9 +1,24 @@
-validCoordinates = [11, 12, 13, 21, 22, 23, 31, 32, 33]
+print("minimum size is 1x1")
+height = int(input("enter height of board:\n"))
+width = int(input("enter width of board:\n"))
+winLength = int(input("enter amount of symbols in a row needed to win:\n"))
+
+validCoordinates = [11]
 grid = {}
 counter2 = 0
 symbol = "X"
 
-for coordinate in validCoordinates:
+while len(validCoordinates) != height * width:
+    coordinate = list(str(validCoordinates[0]))
+    firstDigit = int(coordinate[0])
+    secondDigit = int(coordinate[1])
+
+    if secondDigit == width:
+        validCoordinates = [int(str(firstDigit + 1) + "1")] + validCoordinates
+    else:
+        validCoordinates = [int(str(firstDigit) + str(secondDigit + 1))] + validCoordinates
+
+for coordinate in reversed(validCoordinates):
     grid[coordinate] = "_"
 
 def printGrid():
@@ -14,7 +29,7 @@ def printGrid():
         string += grid[coordinate]
         string += " "
         counter += 1
-        if counter == 3:
+        if counter == width:
             string += "\n"
             counter = 0
 
@@ -22,36 +37,42 @@ def printGrid():
 
 def winCondition():
     rowsCounter = 0
-    rowsLength = 3
-
     columnCounter = 0
-    columnLength = 3
 
-    for count in range(1, int((len(grid) / rowsLength)) + 1):
+    for count in range(1, int((len(grid) / width)) + 1):
         rowsMatch = None
-        for position in range(1, rowsLength + 1):
+        for position in range(1, width + 1):
             element = grid[int(str(count) + str(position))]
-            if element == "_":
-                break
+            if rowsCounter == winLength: return True
+            if element == "_": continue
+
             if rowsCounter == 0:
                 rowMatch = element
                 rowsCounter += 1
             elif rowMatch == element:
                 rowsCounter += 1
+            else:
+                rowMatch = element
+                rowsCounter = 0
 
-    for count in range(1, int((len(grid) / columnLength)) + 1):
+    for count in range(1, int((len(grid) / height)) + 1):
         columnMatch = None
-        for position in range(1, columnLength + 1):
+        for position in range(1, height + 1):
             element = grid[int(str(position) + str(count))]
-            if element == "_":
-                break
+            if columnCounter == winLength: return True
+            if element == "_": continue
+
             if columnCounter == 0:
                 columnMatch = element
                 columnCounter += 1
             elif columnMatch == element:
                 columnCounter += 1
+            else:
+                columnMatch = element
+                columnCounter = 0
 
-    return rowsCounter == rowsLength or columnCounter == columnLength
+    if columnCounter == winLength or rowsCounter == winLength: return True
+    return False
 
 def activateRound():
     global symbol
