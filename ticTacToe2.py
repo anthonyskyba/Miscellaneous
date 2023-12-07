@@ -1,4 +1,4 @@
-print("minimum size is 1x1")
+print("minimum size is 1x1\nmaximum size is until it breaks")
 height = int(input("enter height of board:\n"))
 width = int(input("enter width of board:\n"))
 winLength = int(input("enter amount of symbols in a row needed to win:\n"))
@@ -8,16 +8,20 @@ grid = {}
 counter2 = 0
 symbol = "X"
 
+# add all possible coordinates to validCoordinates
 while len(validCoordinates) != height * width:
     coordinate = list(str(validCoordinates[0]))
     firstDigit = int(coordinate[0])
     secondDigit = int(coordinate[1])
 
     if secondDigit == width:
+        # start a new row
         validCoordinates = [int(str(firstDigit + 1) + "1")] + validCoordinates
     else:
+        # increment current row
         validCoordinates = [int(str(firstDigit) + str(secondDigit + 1))] + validCoordinates
 
+# sort the coordinates and assign them all to "_"
 for coordinate in reversed(validCoordinates):
     grid[coordinate] = "_"
 
@@ -35,79 +39,102 @@ def printGrid():
 
     print(string)
 
-def winCondition():
-    rowsCounter = 0
-    columnCounter = 0
+# horizontal = "rows" or "columns"
+# diagonal = "TLtoBR" or "TRtoBL"
+# coordinate = user's input
+def winCondition(coordinate, horizontal, diagonal):
+    global symbol
+    matches = 0
+    counter = 0
+    counter2 = 0
+    num1 = int(list(str(coordinate))[0])
+    num2 = int(list(str(coordinate))[1])
 
-    for count in range(1, int((len(grid) / width)) + 1):
-        rowsMatch = None
-        for position in range(1, width + 1):
-            element = grid[int(str(count) + str(position))]
-            if rowsCounter == winLength: return True
-            if element == "_": continue
+    # loop through how many matches we need
+    while counter <= winLength - 1:
+        # increment the coordinate 
+        if horizontal == "rows":
+            counter += 1
+        elif horizontal == "columns":    
+            counter2 += 1
+        elif diagonal == "TLtoBR":
+            counter -= 1
+            counter2 -= 1
+        elif diagonal == "TRtoBL":
+            counter += 1
+            counter2 -= 1
 
-            if rowsCounter == 0:
-                rowMatch = element
-                rowsCounter += 1
-            elif rowMatch == element:
-                rowsCounter += 1
+        try:
+            key = int(str(num1 + counter2) + str(num2 + counter))
+        except:
+            key = None
+        
+        # check if not on edge and if square to the right matches
+        if key in grid and grid[key] == symbol:
+            matches += 1
+        else:
+            try:
+                key = int(str(num1 - counter2) + str(num2 - counter))
+            except:
+                key = 0
+
+            # check if not on edge and if square to the left matches
+            if key in grid and grid[key] == symbol:
+                matches += 1
             else:
-                rowMatch = element
-                rowsCounter = 0
-
-    for count in range(1, int((len(grid) / height)) + 1):
-        columnMatch = None
-        for position in range(1, height + 1):
-            element = grid[int(str(position) + str(count))]
-            if columnCounter == winLength: return True
-            if element == "_": continue
-
-            if columnCounter == 0:
-                columnMatch = element
-                columnCounter += 1
-            elif columnMatch == element:
-                columnCounter += 1
-            else:
-                columnMatch = element
-                columnCounter = 0
-
-    if columnCounter == winLength or rowsCounter == winLength: return True
+                break
+    
+    # return true if all matches succeeded
+    if matches == winLength - 1:
+        return True
     return False
 
+repeatSymbol = False
 def activateRound():
     global symbol
+    global repeatSymbol
 
-    if symbol == "X":
-        symbol = "O"
-    else:
-        symbol = "X"
+    # repeat the symbol if invalid coordinate
+    if (!repeatSymbol):
+        repeatSymbol = False
+        if symbol == "X":
+            symbol = "O"
+        else:
+            symbol = "X"
 
     validChar = False
     tie = False
     userInput = int(input("Enter a coordinate:\n"))
 
+    # check for invalid coordinate entered
     for coordinate in validCoordinates:
         if coordinate == userInput:
             validChar = True
-            grid[coordinate] = symbol
+            # check if square is available
+            if grid[coordinate] == "_":
+                grid[coordinate] = symbol
+            else:
+                repeatSymbol = True
+                print("coordinate is occupied")
 
+    # check if there are any empty squares remaining
     for key in grid:
         tie = True
         if grid[key] == "_":
             tie = False
             break
-    
-    if tie == True:
+
+    if tie:
         print("tie")
         return
 
-    if validChar == False:
+    if !validChar:
         print("invalid coordinate")
+        repeatSymbol = True
 
     printGrid()
 
-    # if (grid[11] == symbol and grid[12] == symbol and grid[13] == symbol) or (grid[21] == symbol and grid[22] == symbol and grid[23] == symbol) or (grid[31] == symbol and grid[32] == symbol and grid[33] == symbol) or (grid[11] == symbol and grid[21] == symbol and grid[31] == symbol) or (grid[12] == symbol and grid[22] == symbol and grid[32] == symbol) or (grid[13] == symbol and grid[23] == symbol and grid[33] == symbol) or (grid[11] == symbol and grid[22] == symbol and grid[33] == symbol) or (grid[13] == symbol and grid[22] == symbol and grid[31] == symbol):
-    if winCondition():
+    if winCondition(userInput, "rows", None) or winCondition(userInput, "columns", None) or winCondition(userInput, None, "TLtoBR") or winCondition(userInput, None, "TRtoBL"):
         print(symbol + " wins")
         return
 
